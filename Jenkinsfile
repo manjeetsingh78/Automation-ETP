@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        TF_VAR_FILE = ""
-        DEPLOY_ENV  = ""
-    }
-
     stages {
 
         stage('Detect Branch') {
@@ -38,14 +33,14 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                bat "terraform plan -var-file=%TF_VAR_FILE%"
+                bat "terraform plan -var-file=${env.TF_VAR_FILE}"
             }
         }
 
         stage('Terraform Apply') {
             steps {
                 input message: "Approve deployment to ${env.DEPLOY_ENV}?"
-                bat "terraform apply -auto-approve -var-file=%TF_VAR_FILE%"
+                bat "terraform apply -auto-approve -var-file=${env.TF_VAR_FILE}"
             }
         }
     }
