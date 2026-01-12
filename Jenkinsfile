@@ -1,12 +1,8 @@
 pipeline {
     agent any
 
-    environment {
-        AWS_ACCESS_KEY_ID     = credentials('aws-creds').accessKey
-        AWS_SECRET_ACCESS_KEY = credentials('aws-creds').secretKey
-    }
-
     stages {
+
         stage('Detect Branch') {
             steps {
                 script {
@@ -31,20 +27,35 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                bat 'terraform init'
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
+                    bat 'terraform init'
+                }
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                bat "terraform plan -var-file=${env.TF_VAR_FILE}"
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
+                    bat "terraform plan -var-file=${env.TF_VAR_FILE}"
+                }
             }
         }
 
         stage('Terraform Apply') {
             steps {
                 input message: "Approve deployment to ${env.DEPLOY_ENV}?"
-                bat "terraform apply -auto-approve -var-file=${env.TF_VAR_FILE}"
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
+                    bat "terraform apply -auto-approve -var-file=${env.TF_VAR_FILE}"
+                }
             }
         }
     }
