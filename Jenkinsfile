@@ -17,20 +17,26 @@ pipeline {
         stage('Detect Branch') {
             steps {
                 script {
+                    def tfVarFile = ""
+                    def deployEnv = ""
+
                     if (env.BRANCH_NAME == 'main') {
-                        TF_VAR_FILE = 'prod.tfvars'
-                        DEPLOY_ENV  = 'PRODUCTION'
+                        tfVarFile = 'prod.tfvars'
+                        deployEnv = 'PRODUCTION'
                     } else if (env.BRANCH_NAME == 'develop') {
-                        TF_VAR_FILE = 'dev.tfvars'
-                        DEPLOY_ENV  = 'DEVELOPMENT'
+                        tfVarFile = 'dev.tfvars'
+                        deployEnv = 'DEVELOPMENT'
                     } else {
                         error "Unsupported branch: ${env.BRANCH_NAME}"
                     }
 
+                    env.TF_VAR_FILE = tfVarFile
+                    env.DEPLOY_ENV  = deployEnv
+
                     echo "===================================="
                     echo "Branch Name      : ${env.BRANCH_NAME}"
-                    echo "Deployment Env   : ${DEPLOY_ENV}"
-                    echo "Terraform VarFile: ${TF_VAR_FILE}"
+                    echo "Deployment Env   : ${env.DEPLOY_ENV}"
+                    echo "Terraform VarFile: ${env.TF_VAR_FILE}"
                     echo "===================================="
                 }
             }
