@@ -1,2 +1,2 @@
-instance_type = "t2.medium"
+instance_type = "t3.micro"
 environment   = "prod"
