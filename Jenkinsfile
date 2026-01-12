@@ -8,30 +8,18 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Detect Branch') {
             steps {
                 script {
-                    def tfVarFile = ""
-                    def deployEnv = ""
-
                     if (env.BRANCH_NAME == 'main') {
-                        tfVarFile = 'prod.tfvars'
-                        deployEnv = 'PRODUCTION'
+                        env.TF_VAR_FILE = 'prod.tfvars'
+                        env.DEPLOY_ENV  = 'PRODUCTION'
                     } else if (env.BRANCH_NAME == 'develop') {
-                        tfVarFile = 'dev.tfvars'
-                        deployEnv = 'DEVELOPMENT'
+                        env.TF_VAR_FILE = 'dev.tfvars'
+                        env.DEPLOY_ENV  = 'DEVELOPMENT'
                     } else {
                         error "Unsupported branch: ${env.BRANCH_NAME}"
                     }
-
-                    env.TF_VAR_FILE = tfVarFile
-                    env.DEPLOY_ENV  = deployEnv
 
                     echo "===================================="
                     echo "Branch Name      : ${env.BRANCH_NAME}"
@@ -44,20 +32,20 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                sh 'terraform init'
+                bat 'terraform init'
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                sh "terraform plan -var-file=${TF_VAR_FILE}"
+                bat "terraform plan -var-file=%TF_VAR_FILE%"
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                input message: "Approve deployment to ${DEPLOY_ENV}?"
-                sh "terraform apply -auto-approve -var-file=${TF_VAR_FILE}"
+                input message: "Approve deployment to ${env.DEPLOY_ENV}?"
+                bat "terraform apply -auto-approve -var-file=%TF_VAR_FILE%"
             }
         }
     }
